@@ -1,3 +1,3 @@
-# Mic Check 1..2..3
+# Blogs to myself
 
-Hello World
+Teaching myself by blogging
