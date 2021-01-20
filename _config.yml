@@ -1,8 +1,32 @@
-theme: jekyll-theme-hacker
-title: Blog
-author: mulpdev
+title: blog
+description: "Teachning myself via blogging"
+author:
+  name: "mulpdev"
+  #email: "someone@somewebsite.somedomain"
+  url: "https://mulp.dev
 
-# social links
-github_username:  mulpdev # DO NOT include the @ character, or else the build will fail!
+baseurl: /
 
-show_excerpts: true # set to false to remove excerpts on the homepage
+source: .
+destination: ./_site
+permalink: /:title
+paginate: 3
+paginate_path: /page/:num/
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+future: true
+plugins:
+  - jekyll-seo-tag
+  - jekyll-paginate
+  - jekyll-sitemap
+
+# Custom variables
+owner : "mulpdev"
+year : "2021"
