@@ -1,8 +1,10 @@
 theme: jekyll-theme-hacker
-title: Blog
+title: blog
 author: mulpdev
-
+description: > # this means to ignore newlines until "baseurl:"
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://mulp.dev" # the base hostname & protocol for your site, e.g. http://example.com
 # social links
-github_username:  mulpdev # DO NOT include the @ character, or else the build will fail!
+github_username: mulpdev # DO NOT include the @ character, or else the build will fail!
 
 show_excerpts: true # set to false to remove excerpts on the homepage
