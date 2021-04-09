@@ -34,7 +34,7 @@ The calling convention for cdecl is:
 
 The `sysenter` call results in the function `_kernel_vsyscall` being called. The end of this function contains the following instructions
 
-```text
+```assembly
 pop    %ebp
 pop    %edx
 pop    %ecx
@@ -46,11 +46,11 @@ Therefore we need to prep the stack with the appropriate values before actually 
 1. Push address of where to return to \(e.g., saved EIP\)
 2. Push `ecx`  `edx` and `ebp` 
 
-\[Source\]\([https://reverseengineering.stackexchange.com/questions/2869/how-to-use-sysenter-under-linux](https://reverseengineering.stackexchange.com/questions/2869/how-to-use-sysenter-under-linux)\)
+[https://reverseengineering.stackexchange.com/questions/2869/how-to-use-sysenter-under-linux](https://reverseengineering.stackexchange.com/questions/2869/how-to-use-sysenter-under-linux)
 
 ### Getting memory with mmap2 syscall
 
-```text
+```assembly
 void *mmap2(unsigned long addr, unsigned long length,
             unsigned long prot, unsigned long flags,
             unsigned long fd, unsigned long pgoffset)
@@ -58,7 +58,7 @@ void *mmap2(unsigned long addr, unsigned long length,
 
 Both the `flags` and `prot` parameters take constants in C to make our lives easier. We'll have to look through the Linux source code to find them.
 
-```text
+```assembly
 ; https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/mman-common.h#L23 
 %define PROT_READ 0x1
 %define PROT_WRITE 0x2
@@ -69,7 +69,7 @@ Both the `flags` and `prot` parameters take constants in C to make our lives eas
 
 Now we plug our parameters into the appropriate registers and call `syscall` 
 
-```text
+```assembly
   mov ebx, 0
   mov ecx, 4096            ; length < page length (4k) results in a page being allocated anyway
   mov edx, PROT_READ
@@ -94,14 +94,14 @@ The destination will be the freshly mapped memory. After the call to `mmap` the 
 
 To make life easier, I defined a string in the data section for the `src` parameter.
 
-```text
+```assembly
 section .data
 str1: db 'this is only a test', 0
 ```
 
 Once again, we plug the parameters into the appropriate registers but this time we use `call`. Since only 2 parameters are needed, the others are ignored.
 
-```text
+```assembly
   push str1
   push eax      ; eax is address from mmap
   call strcpy
@@ -118,7 +118,7 @@ The beginning of a function contains a prologue that does the following
 3. Subtract N bytes from the stack pointer for any local variables \(if needed\)
 4. Save any preserved registers that this function clobbers \(if needed\)
 
-```text
+```assembly
 ; prologue example
   push ebp
   mov ebp, esp
@@ -130,7 +130,7 @@ The beginning of a function contains a prologue that does the following
 
 Using the `ebp` as a reference we can access the arguments, saved EIP, and any local variables. Remember the stack grows downward \(subtract = using stack space\)
 
-```text
+```assembly
 ; more args here if needed
 ebp + 0xC <- argument 2
 ebp + 0x8 <- argument 1       
@@ -151,7 +151,7 @@ The end of a function contains a epilogue that reverses the prologue
 3. Set stack pointer back to base pointer \(required\)
 4. Reset previous base pointer \(required\)
 
-```text
+```assembly
 ; epilogue example from above example
   pop ebx
   add esp, 0xC
@@ -163,7 +163,7 @@ The end of a function contains a epilogue that reverses the prologue
 
 In order to copy the string, we need to know exactly how many bytes the source string is. Calling `strlen` will give us that length. We have to also clean the stack afterward.
 
-```text
+```assembly
 strcpy:
   push ebp
   mov ebp, esp        ; End of prologue, no local vars or clobbered regs
@@ -191,7 +191,7 @@ My implementation for `strlen` does the following:
 3. Search until we find a byte in the string that matches `eax` 
 4.  Subtract `ecx` from `edx` to get the number of bytes
 
-```text
+```assembly
 strlen:
   push ebp
   mov ebp, esp
@@ -228,7 +228,7 @@ The funky line `repne scasb` is shorthand for:
 
 Now that we have the length, we can make a loop that copies the required bytes over.
 
-```text
+```assembly
   mov ecx, eax
   mov edx, ecx
   mov edi, [ebp + 0x8]  ; param 1 dst
@@ -246,7 +246,7 @@ The line `rep movsb` is shorthand for:
 * move the byte pointed at by `esi` into the byte pointed at by `edi`\(movsb\)
 * Repeat while `ecx` is not 0 \(rep\)
 
-The final code can be seen \[here\]\([https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm](https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm)\)
+The final code can be seen ([https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm](https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm)
 
 
 

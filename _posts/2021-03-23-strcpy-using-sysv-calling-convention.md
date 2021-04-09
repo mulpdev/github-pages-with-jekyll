@@ -28,31 +28,32 @@ From Appendix A.2.1 Linux Conventions
 | argument 6 | r9 | r9 |
 | syscall number | rax | - |
 
-Figure 3.14 shows the preserved registers. 
+Figure 3.14 shows the preserved registers (for simplicity we only care about general purpose. There are more)
 
 * rbx, rsp, rbp, r12 - r15
 
 ### Getting memory with mmap syscall
 
-```text
+```c
 void *mmap(void *addr, size_t length, int prot, int flags,
            int fd, off_t offset);
 ```
 
 Both the `flags` and `prot` parameters take constants in C to make our lives easier. We'll have to look through the Linux source code to find them.
 
-```text
+```assembly
 ; https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/mman-common.h#L23 
 %define PROT_READ 0x1
 %define PROT_WRITE 0x2
 %define MAP_ANONYMOUS 0x20
+
 ; https://elixir.bootlin.com/linux/latest/source/include/uapi/linux/mman.h#L17
 %define MAP_PRIVATE 0x2
 ```
 
 Now we plug our parameters into the appropriate registers and call `syscall` 
 
-```text
+```assembly
   mov rdi, 0
   mov rsi, 4096           ; length < page length (4k) results in a page being allocated anyway
   mov rdx, PROT_READ
@@ -77,14 +78,14 @@ The destination will be the freshly mapped memory. After the call to `mmap` the 
 
 To make life easier, I defined a string in the data section for the `src` parameter.
 
-```text
+```assembly
 section .data
 str1: db 'this is only a test', 0
 ```
 
 Once again, we plug the parameters into the appropriate registers but this time we use `call`. Since only 2 parameters are needed, the others are ignored.
 
-```text
+```assembly
   mov rdi, rax      ; rax is address from mmap
   mov rsi, str1
   call strcpy
@@ -94,7 +95,7 @@ Once again, we plug the parameters into the appropriate registers but this time 
 
 In order to copy the string, we need to know exactly how many bytes the source string is. Calling `strlen` will give us that length. 
 
-```text
+```assembly
 strcpy:
   xor rax, rax
 
@@ -118,7 +119,7 @@ My implementation for `strlen` does the following:
 3. Search until we find a byte in the string that matches `rax` 
 4.  Subtract `rcx` from `r8` to get the number of bytes
 
-```text
+```assembly
 strlen:
   xor rax, rax
   cld            ; increment rsi/rdi during REP
@@ -143,7 +144,7 @@ The funky line `repne scasb` is shorthand for:
 
 Now that we have the length, we can make a loop that copies the required bytes over.
 
-```text
+```assembly
   mov rcx, rax
   mov rdi, r12
   cld            ; increment rsi/rdi during REP
@@ -157,7 +158,7 @@ The line `rep movsb` is shorthand for:
 * move the byte pointed at by `rsi` into the byte pointed at by `rdi`\(movsb\)
 * Repeat while `rcx` is not 0 \(rep\)
 
-The final code can be seen \[here\]\([https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-sysv.asm](https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-sysv.asm)\)
+The final code can be seen [https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-sysv.asm](https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-sysv.asm)
 
 
 

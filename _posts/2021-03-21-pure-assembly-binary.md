@@ -48,7 +48,7 @@ But wait, it also says
 
 > This system call does not exist on x86-64.
 
-A quick look at the \[x86-64 syscall table\]\([https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall\_64.tbl](https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_64.tbl)\) confirms that `mmap` is defined, but `mmap2` is not. So for x86-64, we must use the `mmap` syscall declaration
+A quick look at the [x86-64 syscall table](https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall\_64.tbl) confirms that `mmap` is defined, but `mmap2` is not. So for x86-64, we must use the `mmap` syscall declaration
 
 ```c
 void *mmap(void *addr, size_t length, int prot, int flags,
@@ -57,7 +57,9 @@ void *mmap(void *addr, size_t length, int prot, int flags,
 
 The minimum allocation for an `mmap` call is typically the system page size. For x86/x86-64 that is 4kb.
 
-Since I don't want to write my own allocator and memory manager, so I'm going to be extremely wasteful in this exercise.
+### What's next?
+
+Since I don't want to write my own allocator and memory manager, so I'm going to be extremely wasteful in these exercises. I'll document useful info in the following posts
 
 
 

@@ -8,8 +8,7 @@ I will be making a binary that
 * Allocates a single page of dynamic memory
 * Copies a string into that memory
 
-See \[Part 1\]\(\) and \[Quick and Dirty Assembly\]\(\)
-
+See [Quick and Dirty Assembly](2021-02-21-quick-and-dirty-assembly.md) and [Pure Binary in Assembly](2021-03-21-pure-assembly-binary.md)
 ### STDCALL Calling conventions
 
 The calling convention for STDCALL is:
@@ -46,7 +45,7 @@ void *mmap2(unsigned long addr, unsigned long length,
 
 Both the `flags` and `prot` parameters take constants in C to make our lives easier. We'll have to look through the Linux source code to find them.
 
-```text
+```assembly
 ; https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/mman-common.h#L23 
 %define PROT_READ 0x1
 %define PROT_WRITE 0x2
@@ -57,7 +56,7 @@ Both the `flags` and `prot` parameters take constants in C to make our lives eas
 
 Now we plug our parameters into the appropriate registers and call `int 0x80` 
 
-```text
+```assembly
   mov ebx, 0
   mov ecx, 4096            ; length < page length (4k) results in a page being allocated anyway
   mov edx, PROT_READ
@@ -83,14 +82,14 @@ The destination will be the freshly mapped memory. After the call to `mmap` the 
 
 To make life easier, I defined a string in the data section for the `src` parameter.
 
-```text
+```assembly
 section .data
 str1: db 'this is only a test', 0
 ```
 
 Once again, we plug the parameters into the appropriate registers but this time we use `call`. Since only 2 parameters are needed, the others are ignored.
 
-```text
+```assembly
   push str1
   push eax      ; eax is address from mmap
   call strcpy
@@ -107,7 +106,7 @@ The beginning of a function contains a prologue that does the following
 3. Subtract N bytes from the stack pointer for any local variables \(if needed\)
 4. Save any preserved registers that this function clobbers \(if needed\)
 
-```text
+```assembly
 ; prologue example
   push ebp
   mov ebp, esp
@@ -119,7 +118,7 @@ The beginning of a function contains a prologue that does the following
 
 Using the `ebp` as a reference we can access the arguments, saved EIP, and any local variables. Remember the stack grows downward \(subtract = using stack space\)
 
-```text
+```assembly
 ; more args here if needed
 ebp + 0xC <- argument 2
 ebp + 0x8 <- argument 1       
@@ -140,7 +139,7 @@ The end of a function contains a epilogue that reverses the prologue
 3. Set stack pointer back to base pointer \(required\)
 4. Reset previous base pointer \(required\)
 
-```text
+```assembly
 ; epilogue example from above example
   pop ebx
   add esp, 0xC
@@ -156,7 +155,7 @@ Note:
 
 > STDCALL functions are name-decorated with a leading underscore, followed by an @, and then the number \(in bytes\) of arguments passed on the stack. This number will always be a multiple of 4, on a 32-bit aligned machine. [https://en.wikibooks.org/wiki/X86\_Disassembly/Calling\_Conventions\#STDCALL](https://en.wikibooks.org/wiki/X86_Disassembly/Calling_Conventions#STDCALL)
 
-```text
+```assembly
 _strcpy@8:
   push ebp
   mov ebp, esp        ; End of prologue, no local vars or clobbered regs
@@ -185,7 +184,7 @@ My implementation for `strlen` does the following:
 4.  Subtract `ecx` from `edx` to get the number of bytes
 5. Return 4 since the CALLEE cleans the stack
 
-```text
+```assembly
 _strlen@4:
   push ebp
   mov ebp, esp
@@ -222,7 +221,7 @@ The funky line `repne scasb` is shorthand for:
 
 Now that we have the length, we can make a loop that copies the required bytes over.
 
-```text
+```assembly
   mov ecx, eax
   mov edx, ecx
   mov edi, [ebp + 0x8]  ; param 1 dst
@@ -242,7 +241,7 @@ The line `rep movsb` is shorthand for:
 
 Since I have two 4 byte parameters, I need to issue a `ret 8`
 
-The final code can be seen \[here\]\([https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm](https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm)\)
+The final code can be seen [https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm](https://github.com/mulpdev/practice/blob/master/asm-strcpy-calling-conventions/strcpy-cdecl.asm)
 
 
 
