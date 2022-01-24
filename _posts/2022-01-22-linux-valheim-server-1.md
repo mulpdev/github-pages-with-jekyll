@@ -140,4 +140,4 @@ Use the service name with the systemctl command
 ```
 systemctl start valheimserver
 systemctl status valheimserver
-```s
+```

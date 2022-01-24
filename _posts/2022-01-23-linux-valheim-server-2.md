@@ -15,7 +15,7 @@ Using a Valheim mod site (Thunderstore or NexusMods), ensure you know what depen
 
 In my case I had the following mods (as of 2022-01-23)
 
-| Mod | BepInEx | Dependencies
+| Mod | BepInEx | Dependencies |
 | :--- | :--- |
 | ValheimPlus 9.9.1 | denikson-BepInExPack_Valheim 5.4.900 | |
 | RockerKitten-BoneAppetit-3.0.4 | denikson-BepInExPack_Valheim 5.4.1600 | ValheimModding-Jotunn-2.4.8 |
