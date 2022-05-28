@@ -92,6 +92,8 @@ WantedBy=multi-user.target
 
 `ExecStartPre` is currently set to update Valheim every time it is run. This could also be made into it's own service for better seperation of functionality
 
+**NOTE** Using a shell script in `ExecStartPre` for updating requires the full path to `/usr/games/steamcmd`
+
 ## Optional, setting overrides for environment variables
 
 If you plan to place your server configs into version control, it is a good idea to seperate out your senesitive info
